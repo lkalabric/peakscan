@@ -20,7 +20,7 @@ setwd('GitHub/P3_Pipeline')
 
 # The core of the package Fragman and the workflow of the fragment analysis rely in 4 functions:
 # 1) storing.inds (function in charge of reading the FSA or txt(CQS) files and storing them with a list structure)
-fsa_dir <- "GitHub/P3_Pipeline/fsa"
+fsa_dir <- "~/GitHub/P3_Pipeline/fsa"
 my_samples <- storing.inds(fsa_dir)
 
 # 2) ladder.info.attach (uses the information read from the FSA files and a vector containing the
