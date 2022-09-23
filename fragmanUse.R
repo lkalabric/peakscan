@@ -3,17 +3,17 @@
 # Load scripts for manual peak scoring and values merging
 
 # Set working directory for this session's output
-setwd("GiHub/P3_Pipeline/")
+setwd("GitHub/P3_Pipeline")
 
+# Adding other pieces of code
 source("manual_rescore.R")
 source("replace_scores_df.R")
-Example workflow for initial scores
-
+source("storing_inds_rev3.R")
 
 # Designate data location
 fsa_dir <- "fsa"
 
-## Import files, show plots
+# Import files, show plots
 fsa_data <- storing_inds_rev3(fsa_dir, channels = 5, rawPlot = FALSE, 
                               fourier = TRUE, saturated = TRUE, lets.pullup = FALSE)
 
