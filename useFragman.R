@@ -1,41 +1,54 @@
+```{r, chunk_header}
 # Script name: useFragman.R
-# Author: Luciano KalabricThese commands allow use of the mouse cursor assign peaks to individual samples in the RStudio plotting panel, and to then integrate the new peak calls into the original batch scores.
+# Author: Luciano Kalabric
 # Purpose: Literally implement package 'Fragman' to peak scan fsa files
 # Creation date: Sept 23 2022
-# Last update: Sept 23 2022
-
-# Required packages check and autoinstallation
+# Last update: Sept 24 2022
+```
+# Check required packages and autoinstall ======================================
 list.of.packages <- c("Fragman","pacman")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-# Simpler version of check and autointall packages in R
+# Simpler version to check and autointall packages in R ========================
 # if (!require('Fragman')) install.packages('Fragman'); library('Fragman')
 
-# Loads package Fragman
+# Set the working directory ====================================================
+# setwd("~/GitHub/peakscan/peak-analysis/")
+setwd("C:/Users/kalab/OneDrive/Documentos/GitHub/peakscan/peak-analysis")
+# Original method
+
+# Loads package Fragman ========================================================
 library('Fragman')
 
-# Set the working directory
-setwd('GitHub/P3_Pipeline')
-
+# Use of package Fragman =======================================================
 # The core of the package Fragman and the workflow of the fragment analysis rely in 4 functions:
 # 1) storing.inds (function in charge of reading the FSA or txt(CQS) files and storing them with a list structure)
-fsa_dir <- "~/GitHub/P3_Pipeline/fsa"
-my_samples <- storing.inds(fsa_dir)
+fsa_dir <- "~/GitHub/peakscan/fsa"
+fsa_data <- storing.inds(fsa_dir)
+# my_samples <- storing.inds(fsa_dir, channels=5, fourier=TRUE, 
+#                              saturated=TRUE, lets.pullup=TRUE, 
+#                                plotting=FALSE, rawPlot=FALSE,
+#                                  llength=3000, ulength=80000)
+# JB method
+source("storing_inds.R")
+fsa_data <- storing_inds(fsa_dir, channels = 5, rawPlot = TRUE, fourier = TRUE, saturated = TRUE, lets.pullup = FALSE)
 
 # 2) ladder.info.attach (uses the information read from the FSA files and a vector containing the
-                       ladder information (DNA size of the fragments) and matches the peaks from the channel where
-                       the ladder was run with the DNA sizes for all samples. Then loads such information in the R
-                       environment for the use of posterior functions)
+#                       ladder information (DNA size of the fragments) and matches the peaks from the channel where
+#                       the ladder was run with the DNA sizes for all samples. Then loads such information in the R
+#                       environment for the use of posterior functions)
+
 # 3) overview2 (create friendly plots for any number of individuals specified and can be used to
-              design panels (overview2) for posterior automatic scoring (like licensed software does), or make
-              Fragman-package 3
-              manual scoring (overview) of individuals such as parents of biparental populations or diversity
-              populations)
+#              design panels (overview2) for posterior automatic scoring (like licensed software does), or make
+#              Fragman-package 3
+#              manual scoring (overview) of individuals such as parents of biparental populations or diversity
+#              populations)
+
 # 4) The score.markers (function score the alleles by finding the peaks provided in the panel (if
-                                                                                             provided), otherwise returns all peaks present in the channel). Thisfinal function can be automatized
-if several markers are located in the same channel by creating lists of panels taking advantage of R
-capabilities and data structures.
+#              provided), otherwise returns all peaks present in the channel). Thisfinal function can be automatized
+#              if several markers are located in the same channel by creating lists of panels taking advantage of R
+#              capabilities and data structures.
 
 # Set working directory for this session's output
 setwd("GitHub/P3_Pipeline")
@@ -81,7 +94,7 @@ scores_29E6A <- score_markers_rev3(my.inds = fsa_data,
                              right.cond = 0,
                              pref = 1, 
                              plotting = FALSE)
-Manually select peaks directly on the plotting pane
+# Manually select peaks directly on the plotting pane
 # Retrieve index locations of samples to be scored:
 correct_inds <- which(names(my.inds) %in%
                         c("104.1a_V_4_Sample_20201013_110136.fsa",
@@ -95,10 +108,11 @@ scores_rerun <- manual_rescore(my.inds = fsa_data,
                panel = mic_29E6A,
                ylim= c(0,4000),
                ladder = GS600LIZ)
-Integrate values from re-scored samples into prior results, with output as a data frame
-Script inputs:
-1.	Original scores list object
-2.	Second rerun scores list object (from auto or manual commands)
-3.	Marker panel
+
+# Integrate values from re-scored samples into prior results, with output as a data frame
+# Script inputs:
+# 1.	Original scores list object
+# 2.	Second rerun scores list object (from auto or manual commands)
+# 3.	Marker panel
 # rerun scores are result of either automatic scoring with `score_markers_rev3()` or manual scoring with `scores_rerun`
 scores_29E6A_rr_df <- replace_scores_df(scores_29E6A, scores_rerun, "mic_29E6A")
