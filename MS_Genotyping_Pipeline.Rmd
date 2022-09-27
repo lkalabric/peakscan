@@ -36,8 +36,16 @@ library('Fragman')
 # The core of the package Fragman and the workflow of the fragment analysis rely in 4 functions:
 # 1) storing.inds (function in charge of reading the FSA or txt(CQS) files and storing them with a list structure)
 fsa_dir <- "~/GitHub/peakscan/fsa"
-fsa_data <- storing.inds(fsa_dir)
+fsa_data <- storing.inds(fsa_dir, channels=5)
 ```
+2) ladder.info.attach (uses the information read from the FSA files and a vector containing the
+ladder information (DNA size of the fragments) and matches the peaks from the channel where
+the ladder was run with the DNA sizes for all samples. Then loads such information in the R
+environment for the use of posterior functions
+```{r}
+
+```
+
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
