@@ -1,0 +1,79 @@
+---
+title: "MS Genotyping pipeline"
+author: "Luciano Kalabric"
+creation date: "2022-09-24"
+last update: "2022-09-27"
+output: html_document
+---
+
+```{r header, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # This a global statment
+# Note:
+# =========================================================================
+# `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the outputs and plots
+
+# General advises:
+# =========================================================================
+# 1) use "_" instead of "." in variable and function names;
+# 2) separate each block of code with a comment and "=====" whenever possible
+# 3) this list will continue growing as soon as I learn more about programming in R...
+```
+
+## MS Genotyping Pipeline
+
+This is an effort to parse microsatellite trace files in fsa format together with epidemiological data to create useful data to be uploaded and analyzed at Online Program SpadeR https://chao.shinyapps.io/SpadeR/.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Setup
+
+Required packages installation/loading alongside other source codes
+
+```{r setup}
+# This piece of code turned out not to be useful since RStudio recognizes missing packages and asks for installation
+# =========================================================================
+list.of.packages <- c("Fragman","pacman")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+# Loads package Fragman 
+# =========================================================================
+library('Fragman')
+
+# Loads other source codes 
+# =========================================================================
+source("~/GitHub/peakscan/gs600liz_info.R") # GS600Liz ladder info
+source("~/GitHub/peakscan/smms_info.R")     # S. mansoni microsatellite info
+```
+
+## Use Package Fragman
+
+The core of the package Fragman and the workflow of the fragment analysis rely in 4 functions:
+1) storing.inds (function in charge of reading the FSA or txt(CQS) files and storing them with a list structure)
+
+```{r sorting_inds}
+# It is a good practice to store all fsa files in a different folder. Maybe we should think about saving each set of files in a different folder (i.e. fsa_set1_dir, fsa_set2_dir, etc.)
+# =========================================================================
+fsa_dir <- "~/GitHub/peakscan/fsa"
+
+# Reads the fsa files and stores them within a list structure
+# =========================================================================
+fsa_data <- storing.inds(fsa_dir, channels=5)
+```
+
+2) ladder.info.attach (uses the information read from the FSA files and a vector containing the ladder information (DNA size of the fragments) and matches the peaks from the channel where the ladder was run with the DNA sizes for all samples. Then loads such information in the R environment for the use of posterior functions
+
+```{r ladder_info_attach}
+# Create a vector indicating the sizes of your ladder and do the match
+# =========================================================================
+ladder.info.attach(stored=fsa_data, ladder=gs600liz)
+### Matching your ladder is a critical step and should only happen once per batch of samples read
+
+my.panel <- overview2(my.inds=fsa_data, cols=5, ladder=gs600liz, init.thresh=7000, xlim=c(160,190))
+
+```
+
+
+
+
+

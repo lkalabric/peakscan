@@ -1,0 +1,27 @@
+{
+    "id": "83A5C41F",
+    "path": "~/GitHub/peakscan/MS_Genotyping_Pipeline.Rmd",
+    "project_path": "MS_Genotyping_Pipeline.Rmd",
+    "type": "r_markdown",
+    "hash": "2155559123",
+    "contents": "",
+    "dirty": false,
+    "created": 1664312763127.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "71,29",
+        "scrollLine": "68",
+        "last_setup_crc32": "F8F24C2B14113544"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1664312893,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1664312893608,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -68,6 +68,9 @@ fsa_data <- storing.inds(fsa_dir, channels=5)
 # =========================================================================
 ladder.info.attach(stored=fsa_data, ladder=gs600liz)
 ### Matching your ladder is a critical step and should only happen once per batch of samples read
+
+my.panel <- overview2(my.inds=fsa_data, cols=5, ladder=gs600liz, init.thresh=7000, xlim=c(160,190))
+
 ```
 
 

@@ -1,0 +1,5 @@
+"0","my.panel <- overview2(my.inds=fsa_data, cols=5, ladder=gs600liz, init.thresh=7000, xlim=c(160,190))
+"
+"2","Error in overview2(my.inds = fsa_data, cols = 5, ladder = gs600liz, init.thresh = 7000,  : 
+  unused argument (cols = 5)
+"
