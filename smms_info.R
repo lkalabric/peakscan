@@ -11,7 +11,13 @@
 # Most recent modification reflects a shift of 1F8A fragments to be 1bp smaller than previously used
 
 # Markers are multiplex for eletrophoresis by sets
-smms_set1 <- c("smms2", "smms3", "smms16")
+set1_smms <- list("smms2", "smms13", "smms16")
+set1_ch <- list(1,4,2)
+set1_x_lim <- list (c(219,295),c(171,228),c(201,258))
+set1_x_min <- list (219,171,201)
+set1_x_max <- list (295,228,258)
+
+smms_set1 <- list("smms2", "smms13", "smms16")
 smms_set2 <- c("smms3", "smms17", "smms18", "smms21")
 smms_set4 <- c("sm13taga", "sm13-410", "sm1f8a", "smda23")
 smms_set5 <- c("sm29e6a", "sm13-478", "smu31768", "sm15j15a")
@@ -21,6 +27,8 @@ smms_set7 <- c("l46951", "r95529", "lg1_sc276", "lg5_sc475")
 smms_set_list <- list(smms_set1, smms_set2, smms_set4, smms_set5, smms_set6, smms_set7)
 names(smms_set_list) <- c("Set1", "Set2", "Set4", "Set5", "Set6", "Set7")
 
+
+### MS painel
 
 # channel 1; 6-FAM (blue) 
 smms2 <- c(211, 215, 219, 223, 227, 231, 235, 239)
@@ -33,7 +41,6 @@ l46951 <- c(156, 159, 162, 165, 168, 171, 174, 177, 180, 183, 186, 189)
 lg1_sc276 <- c(98, 101, 104, 107, 110)
 ch1_list <- c("smms2", "smms3", "sm13taga", "sm29e6a", "sm13-478", "smd28", "l46951", "lg1_sc276")
 
-
 # channel 2; VIC (green) 
 smms16 <- c(210, 213, 216, 219, 222, 225, 228, 231, 234)
 smms17 <- c(286, 289, 292, 295, 298, 301, 304, 307)
@@ -42,7 +49,6 @@ sm1f8a <- c(149, 152, 155, 158, 161, 164, 167, 170)
 sm15j15a <- c(208, 211, 214, 217, 220, 223, 226, 229, 232)
 ch2_list <- c("smms16", "smms17", "smms18", "sm1f8a", "sm15j15a")
 
-
 # channel 3; NED (yellow) 
 smda23 <- c(191, 195, 199, 203, 207, 211, 215, 219, 223, 227, 231, 235)
 smu31768 <- c(185, 188, 191, 194, 197, 200, 203, 206, 209, 212, 215, 218, 221, 224, 227)
@@ -50,7 +56,6 @@ lg3_sc36b <- c(232, 235, 238, 241, 244, 247, 250, 253, 256, 259, 262, 265, 268)
 sc23b <- c(191, 194, 197, 200, 203, 206, 209, 212, 215, 218)
 r95529 <- c(219, 222, 225, 228, 231, 234, 237, 240, 243, 246, 249, 252)
 ch3_list <-c("smda23", "smu31768", "lg3_sc36b", "sc23b", "r95529")
-
 
 # channel 4; PET (red) 
 smms13 <- c(183, 186, 189, 192, 195, 198, 201, 204)

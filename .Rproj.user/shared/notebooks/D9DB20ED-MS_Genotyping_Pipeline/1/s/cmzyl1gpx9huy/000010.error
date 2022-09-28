@@ -1,1 +1,0 @@
-{"frames":[{"func":"storing.inds(fsa_dir)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0},{"func":"setwd(paste(folder))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in setwd(paste(folder)) : cannot change working directory\n"}
