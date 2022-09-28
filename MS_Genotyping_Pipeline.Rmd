@@ -100,8 +100,15 @@ number of individuals specified and can be used to design panels (overview2) for
 # =========================================================
 smms2_panel <- overview2(my.inds=fsa_data, channel=1, ladder=gs600liz, init.thresh=7000, xlim=c(219,295))
 smms2_panel <- locator(type="p", pch=20, col="blue")$x
+a <- score.markers (my.inds=fsa_data, channel=1, panel=smms2_panel, ladder=gs600liz, electro=FALSE)
 
 smms13_panel <- overview2(my.inds=fsa_data, channel=4, ladder=gs600liz, init.thresh=7000, xlim=c(171,228))
+smms13_panel <- locator(type="p", pch=20, col="red")$x
+a <- score.markers (my.inds=fsa_data, channel=4, panel=smms13_panel, ladder=gs600liz, electro=FALSE)
+
 smms16_panel <- overview2(my.inds=fsa_data, channel=2, ladder=gs600liz, init.thresh=7000, xlim=c(201,258))
+smms16_panel <- locator(type="p", pch=20, col="green")$x
+a <- score.markers (my.inds=fsa_data, channel=2, panel=smms16_panel, ladder=gs600liz, electro=FALSE)
+
 ```
 

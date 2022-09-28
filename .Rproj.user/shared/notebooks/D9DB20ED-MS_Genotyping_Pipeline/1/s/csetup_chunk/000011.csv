@@ -7,7 +7,30 @@
 "0","# Loads package Fragman "
 "0","# ==============================================================="
 "0","library('Fragman')"
-"0",""
+"2","## ========================================================= ## 
+"
+"2","## ========================================================= ## 
+"
+"2","# Fragman: An R package for Fragment Analysis 1.0.9 (2018-02-01). 
+"
+"2","# Author: Covarrubias-Pazaran et al.
+"
+"2","# Published: BMC Genetics 17(62):1-8
+"
+"2","# Supported and partially funded by:
+"
+"2","#    + Council of Science and Technology (CONACYT)
+"
+"2","#    + US Department of Agriculture (USDA-ARS)
+"
+"2","# Type 'help(Fragman)' for summary information
+"
+"2","# Type 'citation(Fragman)' to know how to cite this package
+"
+"2","## ========================================================= ## 
+"
+"2","## ========================================================= ## 
+"
 "0","# Loads other source codes "
 "0","# ==============================================================="
 "0","source(""~/GitHub/peakscan/gs600liz_info.R"") # GS600Liz ladder info"

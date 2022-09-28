@@ -1,5 +1,0 @@
-"0","smms2_panel <- locator(type=""p"", pch=20, col=""blue"")$x
-"
-"2","Error in locator(type = ""p"", pch = 20, col = ""blue"") : 
-  plot.new has not been called yet
-"

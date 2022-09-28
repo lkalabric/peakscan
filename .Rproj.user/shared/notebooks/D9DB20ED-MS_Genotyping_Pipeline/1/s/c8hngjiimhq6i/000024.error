@@ -1,1 +1,0 @@
-{"frames":[{"func":"locator(type = \"p\", pch = 20, col = \"blue\")","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in locator(type = \"p\", pch = 20, col = \"blue\") : \n  plot.new has not been called yet\n"}
