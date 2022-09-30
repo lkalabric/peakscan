@@ -1,0 +1,5 @@
+"0","#Export score flatfiles"
+"0","write.table(scores_SMU31768_lf, file = ""scores_SMU31768_lfex.txt"", col.names = NA,"
+"0","            quote = FALSE, row.names = TRUE, sep = ""\t"") #Export long form data frame as tsv to working directory"
+"0","write.table(scores_SMU31768_tdf, file = ""scores_SMU31768_tdfex.txt"", col.names = NA,"
+"0","            quote = FALSE, row.names = TRUE, sep = ""\t"") #Export transposed data frame as tsv to working directory"

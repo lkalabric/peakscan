@@ -1,0 +1,38 @@
+"0","#Score peaks for bin size and height"
+"0","scores_29E6A <- score_markers_rev3(my.inds = fsa_data, "
+"0","                             channel = 1, "
+"0","                             # n.inds = ""cwru.a_V_3_Sample_20201013_165003.fsa"","
+"0","                             channel.ladder = 5,"
+"0","                             panel = ""mic_29E6A"", "
+"0","                             ladder = GS600LIZ, "
+"0","                             init.thresh = 100,"
+"0","                             ploidy = length(mic_29E6A),"
+"0","                             windowL = 0.25,"
+"0","                             windowR= 2,"
+"0","                             left.cond = c(0, 2.5),"
+"0","                             right.cond = 0,"
+"0","                             pref = 1, "
+"0","                             plotting = TRUE,"
+"0","                             plotdir = ""plots_scoring_intro"") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes"
+"2","______
+This is a revision of the Fragman script score.markers, 
+For the original instructions and parameters, run '?score.markers' 
+
+"
+"2","This revision designates separate parameters for Left and Right search windows.
+
+"
+"2","You are writing plots for all samples to the directory 'plots_scoring_intro'. 
+  For faster calculation but no plots, set 'plotting = FALSE'
+
+"
+"1","Scoring  mic_29E6A peaks
+Please be patient!
+"
+"2","Warning: prediction from a rank-deficient fit may be misleading"
+"2","Warning: prediction from a rank-deficient fit may be misleading"
+"2","Writing plots to directory 'plots_scoring_intro'
+
+"
+"2","Warning: 'C:\Users\lsilva2\OneDrive - FIOCRUZ\Documents\GitHub\P3_Pipeline\plots_scoring_intro' already exists"
+"1","Cleaning up..."

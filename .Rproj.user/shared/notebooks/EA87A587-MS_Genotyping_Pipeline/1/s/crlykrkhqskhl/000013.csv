@@ -1,0 +1,10 @@
+"0","for (i in 1:3) {
+  i
+  var_name = paste0(""set"",i)
+  var_name
+  for (j in set1} {
+"
+"2","Error: unexpected '}' in:
+""  var_name
+  for (j in set1}""
+"

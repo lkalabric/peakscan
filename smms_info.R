@@ -11,21 +11,21 @@
 # Most recent modification reflects a shift of 1F8A fragments to be 1bp smaller than previously used
 
 # Markers are multiplex for eletrophoresis by sets
-set1_smms <- list("smms2", "smms13", "smms16")
-set1_ch <- list(1,4,2)
-set1_x_lim <- list (c(219,295),c(171,228),c(201,258))
-set1_x_min <- list (219,171,201)
-set1_x_max <- list (295,228,258)
+name <- (name= c("smms2", "smms13", "smms16"))
+ch <- (ch= c(1,4,2))
+x_min <- (x_min= c(219,171,201))
+x_max <- (x_max= c(295,228,258))
+set1 <- data.frame(name, ch, x_min, x_max)
 
-smms_set1 <- list("smms2", "smms13", "smms16")
-smms_set2 <- c("smms3", "smms17", "smms18", "smms21")
-smms_set4 <- c("sm13taga", "sm13-410", "sm1f8a", "smda23")
-smms_set5 <- c("sm29e6a", "sm13-478", "smu31768", "sm15j15a")
-smms_set6 <- c("lg3_sc36b ", "sc23b", "smd28")
-smms_set7 <- c("l46951", "r95529", "lg1_sc276", "lg5_sc475")
+set1 <- list("smms2", "smms13", "smms16")
+set2 <- c("smms3", "smms17", "smms18", "smms21")
+set4 <- c("sm13taga", "sm13-410", "sm1f8a", "smda23")
+set5 <- c("sm29e6a", "sm13-478", "smu31768", "sm15j15a")
+set6 <- c("lg3_sc36b ", "sc23b", "smd28")
+set7 <- c("l46951", "r95529", "lg1_sc276", "lg5_sc475")
 
-smms_set_list <- list(smms_set1, smms_set2, smms_set4, smms_set5, smms_set6, smms_set7)
-names(smms_set_list) <- c("Set1", "Set2", "Set4", "Set5", "Set6", "Set7")
+set_list <- list(set1, set2, set4, set5, set6, set7)
+names(set_list) <- c("Set1", "Set2", "Set4", "Set5", "Set6", "Set7")
 
 
 ### MS painel

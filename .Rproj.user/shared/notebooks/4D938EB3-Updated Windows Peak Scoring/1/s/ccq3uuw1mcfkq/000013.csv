@@ -1,0 +1,16 @@
+"0","#Batch import and extract all fsa files into one object"
+"0","fsa_data <- storing_inds_rev3(fsa_dir, channels = 5, rawPlot = TRUE, fourier = TRUE, saturated = TRUE, lets.pullup = FALSE) #Import files, show plots"
+"2","This is a revision of the Fragman script storing.inds with the following changes:
+  - Now imports and parse up to version 3 of the fsa format.  
+  - Rarely used functionality for non-fsa files has been removed.
+  For the original instructions and parameters, run '?storing.inds' 
+
+"
+"2","Reading FSA files
+"
+"2","Applying Fourier tranformation for smoothing...
+"
+"2","Checking and correcting for saturated peaks...
+"
+"2","Plotting raw data
+"
