@@ -72,6 +72,9 @@ fsa_data <- storing.inds(fsa_dir, channels=5, lets.pullup=FALSE)
 # ===============================================================
 ladder.info.attach(stored=fsa_data, ladder=gs600liz, ladd.init.thresh=threshold, prog=FALSE, draw=TRUE)
 ### Matching your ladder is a critical step and should only happen once per batch of samples read
+
+my.panel <- overview2(my.inds=fsa_data, channel=5, ladder=gs600liz, init.thresh=7000, xlim=c(160,190))
+
 ```
 
 Here we identified all samples that we did not find a good ladder even though we tried the most liberal parameters:
@@ -96,6 +99,28 @@ ladder.corrector(fsa_data, bad_data, gs600liz, thresh=threshold)
 number of individuals specified and can be used to design panels (overview2) for posterior automatic scoring (like licensed software does), or make manual scoring (overview)
 
 ```{r overview2}
+# General loop per batch and marker
+# =========================================================
+for (i in 1:3) {
+  i
+  var_name = paste0("set",i)
+  var_name
+  for (j in set1) {
+    j  
+  }
+}
+x <- list(y = 1:10)
+
+pass_by_value <- function(x){
+  x$y <- 10:1
+}
+
+pass_by_value(x)
+x$y
+
+
+
+
 # Design panels for smms set 1
 # =========================================================
 smms2_panel <- overview2(my.inds=fsa_data, channel=1, ladder=gs600liz, init.thresh=7000, xlim=c(219,295))
