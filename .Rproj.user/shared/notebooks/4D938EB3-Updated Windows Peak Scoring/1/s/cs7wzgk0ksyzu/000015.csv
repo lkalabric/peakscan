@@ -1,1 +1,0 @@
-"0","write.table(fsa_info, file = paste0(""fsa_info.txt""), sep = ""\t"", quote = FALSE, col.names = TRUE, row.names = FALSE)# Export metadata as tsv to working directory"

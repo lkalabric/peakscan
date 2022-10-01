@@ -1,6 +1,0 @@
-"0","corro <- unlist(lapply(list.data.covarrubias, function(x){x$corr}))"
-"0","bad <- which(corro < .999) #Check for samples with poorly correlated ladders"
-"0","bad #View poorly correlated samples (if any)"
-"1","named "
-"1","integer(0)
-"
