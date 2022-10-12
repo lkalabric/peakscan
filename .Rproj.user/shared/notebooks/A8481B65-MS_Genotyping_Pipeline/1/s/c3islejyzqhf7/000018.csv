@@ -1,0 +1,15 @@
+"1","
+"
+"1","
+ THE PEAKS RETURNED ARE SUGGESTIONS. 
+   What you should do: 
+ a) Use the locator function, i.e. ''my.panel <- locator(type='p', pch=20, col='red')$x'' 
+ b) Click over the peaks you want to include in your panel 
+ c) Press the 'esc' key when done selecting peaks 
+ d) Make sure to provide the panel vector in the score.easy() function 
+ 
+"
+"1","[1]"
+"1"," ""Done."""
+"1","
+"

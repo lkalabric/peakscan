@@ -42,13 +42,13 @@ library('Fragman')
 
 # Loads other source codes 
 # ===============================================================
-source("~/GitHub/peakscan/gs600liz_info.R") # GS600Liz ladder info
-source("~/GitHub/peakscan/markers_info.R")  # S. mansoni microsatellite info
+source("~/GitHub/peakscan/ladders_info.R") # ladders sizes
+source("~/GitHub/peakscan/markers_info.R") # microsatellites sets
 
 # General variables
 # ===============================================================
 threshold=100
-sets <- unique(my_marker_sets$set)
+my_sets <- unique(my_marker_sets$set)
 ```
 
 ## Use Package Fragman
@@ -58,13 +58,13 @@ The core of the package Fragman and the workflow of the fragment analysis rely i
 
 ```{r sorting_inds}
 # It is a good practice to store all fsa files in a different folder. # Read just one folder at a time
-fsa_dir <- "~/GitHub/peakscan/fsa_set1"
-fsa_data <- storing.inds(fsa_dir, channels=5, lets.pullup=FALSE)
+#fsa_dir <- "~/GitHub/peakscan/fsa_set1"
+#fsa_data <- storing.inds(fsa_dir, channels=5, lets.pullup=FALSE)
 # Maybe we should think about saving each set of files in a different folder (i.e. fsa_set1_dir, fsa_set2_dir, etc.)
 # ===============================================================
 sets_genotyped <- c()
 fsa_alldata <- list()
-for (i in sets) {
+for (i in my_sets) {
   fsa_dir <- paste0("~/GitHub/peakscan/fsa_",i)
   if (length(list.files(fsa_dir, all.files = TRUE, include.dirs = TRUE, no.. = TRUE)) > 0) {
     list.files(fsa_dir, all.files = TRUE, include.dirs = TRUE, no.. = TRUE)
@@ -79,7 +79,7 @@ for (i in sets) {
     print(paste("Directory",fsa_dir,"is empty!"))
   }
 }
-# names(fsa_alldata) <- sets_genotyped
+names(fsa_alldata) <- sets_genotyped
 ```
 
 2) ladder.info.attach (uses the information read from the FSA files and a vector containing the ladder information (DNA size of the fragments) and matches the peaks from the channel where the ladder was run with the DNA sizes for all samples. Then loads such information in the R environment for the use of posterior functions
@@ -88,37 +88,47 @@ for (i in sets) {
 # Create the list "list.data.covarrubias" indicating the ladder peaks position, height, weigth, correlation and error identified in each file
 # ===============================================================
 #ladder.info.attach(stored=fsa_data, ladder=gs600liz, ladd.init.thresh=threshold, prog=FALSE, draw=TRUE)
-### Matching your ladder is a critical step and should only happen once per batch of samples read
-for (i in 1:length(sets_genotyped)) {
-  print(paste("Matching ladder in",sets_genotyped[i]))
+list_data_allcovarrubias <- list()
+for (i in sets_genotyped) {
+  print(paste("Matching ladder from samples of",i,"..."))
   ladder.info.attach(stored=fsa_alldata[[i]], ladder=gs600liz, ladd.init.thresh=threshold, prog=FALSE, draw=TRUE)
-  readline(prompt = "Press [enter] to continue.")
+  list_data_allcovarrubias <- c(list_data_allcovarrubias, list(list.data.covarrubias))
 }
-ch = my_marker_sets$ch[1]
-x_min = my_marker_sets$x_min[1]
-x_max = my_marker_sets$x_max[1]
-#limit=paste0("c(",x_min,",",x_min,")")
-limit2 <-c(x_min,x_max)
-my.panel <- overview2(my.inds=fsa_alldata[[i]], channel=ch, ladder=gs600liz, init.thresh=7000, xlim=c(x_min,x_max))
+names(list_data_allcovarrubias) <- sets_genotyped
+print("Done.")
+### Matching your ladder is a critical step and should only happen once per batch of samples read
 ```
-
+OPTIONAL:
+### If the ladder.info attach function detects some bad samples
+### that you can correct them manually using
+### the ladder.corrector() function
 Here we identified all samples that we did not find a good ladder even though we tried the most liberal parameters:
 
 ```{r bad_ladder}
-# Extracts the correlation coeficiente between the ladder peak positions and sizes from the "list.data.covarrubia"
-corro <- unlist(lapply(list.data.covarrubias,function(x){x$corr}))
-# Filter files with bad ladder
-bad <- which(corro < .9999)
-
-# Extract the file names from the list bad to the vector bad_data and print the results, if any
-bad_data <- names(bad)
-bad_data
+corro <- list()
+bad <- c()
+bad_samples <- c()
+for (i in sets_genotyped) {
+  # Extracts the correlation coeficiente between the ladder peak positions and sizes from the "list.data.covarrubia"
+  print(paste("Testing ladder peaks from samples of",i,"..."))
+  corro[[i]] <- unlist(lapply(list_data_allcovarrubias[[i]],function(x){x$corr}))
+  # Filter files with bad ladder
+  bad[[i]] <- which(corro[[i]] < .9999)
+  # Extract the file names from the list bad to the vector bad_data and print the results, if any
+  bad_samples[[i]] <- names(bad[[i]])
+  if (length(bad_samples[[i]]) == 0) {
+    print("All samples have a good ladder!")
+  } else {
+    print(paste("Here are the bad samples:",bad_samples[[i]]))
+  }
+  print("Done.")
+}
 ```
 
 You can continue your analysis without worrying about those samples or removing them. Alternatively, you may correct them manually by running the chuck below.
 
 ```{r ladder_corrector}
-ladder.corrector(fsa_data, bad_data, gs600liz, thresh=threshold)
+#ladder.corrector(fsa_data, bad_data, gs600liz, thresh=threshold)
 ```
 3) overview & overview2 create friendly plots for any
 number of individuals specified and can be used to design panels (overview2) for posterior automatic scoring (like licensed software does), or make manual scoring (overview)
@@ -126,23 +136,26 @@ number of individuals specified and can be used to design panels (overview2) for
 ```{r overview2}
 # General loop per batch and marker
 # =========================================================
-for (i in 1:3) {
-  i
-  var_name = paste0("set",i)
-  var_name
-  for (j in set1) {
-    j  
+for (i in sets_genotyped) {
+  #markers_set_name = paste0("markers_",i)
+  #assign(markers_info, subset(my_marker_sets, set == i))
+  print(paste("Creating panel from markers of",i,"..."))
+  markers_info <- subset(my_marker_sets, set == i)
+  for (j in markers_info$marker) {
+    print(paste("Working on marker",j,"..."))
+    # Extract values from marker_info data.frame by marker
+    ch = markers_info[markers_info$marker == j,]$ch
+    x_min = markers_info[markers_info$marker == j,]$x_min
+    x_max = markers_info[markers_info$marker == j,]$x_max
+    my_panel <- overview2(my.inds=fsa_alldata[[i]], channel=ch, ladder=gs600liz, init.thresh=1000, xlim=c(x_min,x_max))
+    marker_name = paste0("marker_",i,"_",j)
+    assign(marker_name, my_painel)
+    print("Done.")
+    readline(prompt = "Press [enter] to continue.")
   }
 }
-x <- list(y = 1:10)
 
-pass_by_value <- function(x){
-  x$y <- 10:1
-}
-
-pass_by_value(x)
-x$y
-
+readline(prompt = "Press [enter] to continue.")
 
 
 
