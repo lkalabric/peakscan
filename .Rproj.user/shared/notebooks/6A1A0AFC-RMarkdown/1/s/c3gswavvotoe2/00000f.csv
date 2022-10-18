@@ -1,0 +1,21 @@
+"0","## Installing package ipynbdocument"
+"0","install.packages(""remotes"")"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"
+"0","library(""remotes"")"
+"0","remotes::install_gitlab(""calvinw/ipynbdocument"")"
+"2","Downloading GitLab repo calvinw/ipynbdocument@HEAD
+from URL https://gitlab.com/api/v4/projects/16847064/repository/archive.tar.gz?sha=HEAD
+"
+"1","
+Restarting R session...
+
+"

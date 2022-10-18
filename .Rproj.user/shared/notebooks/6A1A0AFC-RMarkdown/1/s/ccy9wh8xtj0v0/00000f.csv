@@ -1,0 +1,129 @@
+"0","install.packages(""remotes"")"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"
+"0","library(""remotes"")"
+"0","install_gitlab(""calvinw/ipynbdocument"")"
+"2","Downloading GitLab repo calvinw/ipynbdocument@HEAD
+from URL https://gitlab.com/api/v4/projects/16847064/repository/archive.tar.gz?sha=HEAD
+"
+"2","Running `R CMD build`...
+"
+"1","* checking for file 'C:\Users\kalab\AppData\Local\Temp\Rtmpy2dTQZ\remotes2390769644f0\ipynbdocument-HEAD-428cccdf3fdab7ed13e97b366e63c01ef905492c/DESCRIPTION' ... OK"
+"1","
+"
+"1","* preparing 'ipynbdocument':"
+"1","
+"
+"1","* checking DESCRIPTION meta-information ... OK"
+"1","
+"
+"1","* checking for LF line-endings in source and make files and shell scripts"
+"1","
+"
+"1","* checking for empty or unneeded directories"
+"1","
+"
+"1","Omitted 'LazyData' from DESCRIPTION"
+"1","
+"
+"1","* building 'ipynbdocument_0.1.0.tar.gz'"
+"1","
+"
+"1","* installing *source* package 'ipynbdocument' ...
+"
+"1","** using staged installation
+"
+"1","** R
+"
+"1","** inst
+"
+"1","** byte-compile and prepare package for lazy loading
+"
+"1","** help
+"
+"1","No man pages found in package  'ipynbdocument' 
+"
+"1","*** installing help indices
+"
+"1","** building package indices
+"
+"1","** testing if installed package can be loaded from temporary location
+"
+"1","** testing if installed package can be loaded from final location
+"
+"1","** testing if installed package keeps a record of temporary installation path
+"
+"1","* DONE (ipynbdocument)
+"
+"0","install.packages(""knitr"")"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"
+"0","install.packages(""rmarkdown"")"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"
+"0","install.packages(""tinytex"")"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"
+"0","tinytex::install_tinytex()"
+"2","trying URL 'https://yihui.org/tinytex/TinyTeX-1.zip'
+"
+"2","Content type 'application/octet-stream'"
+"2"," length 109962269 bytes (104.9 MB)
+"
+"2","downloaded 104.9 MB
+
+"
+"1","3 arquivo(s) copiado(s)
+"
+"1","1 arquivo(s) copiado(s)
+"
+"1","Running fc-cache -v -r
+"
+"1","
+Restarting R session...
+
+"
+"1","
+Restarting R session...
+
+"
+"1","
+Restarting R session...
+
+"
+"1","
+Restarting R session...
+
+"

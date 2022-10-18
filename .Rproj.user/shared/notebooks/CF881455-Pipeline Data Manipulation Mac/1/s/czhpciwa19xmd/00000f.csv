@@ -1,0 +1,5 @@
+"0","#Setting the working directory where scripts and data are found and calling the scripts"
+"0","setwd(""~/Documents/GitHub/P3_Pipeline/"")"
+"2","Error in setwd(""~/Documents/GitHub/P3_Pipeline/"") : 
+  cannot change working directory
+"
