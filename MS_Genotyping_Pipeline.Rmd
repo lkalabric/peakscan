@@ -50,6 +50,10 @@ source("~/GitHub/peakscan/research_data.R")		# epi & lab data
 # ===============================================================
 threshold=100
 my_sets <- unique(my_marker_sets$set)
+
+# Output data to Streamlit
+write.csv(my_sets, "data/my_sets.csv", row.names = FALSE)
+write.csv(my_marker_sets, "data/my_marker_sets.csv", row.names = FALSE)
 ```
 ## Use Package Fragman
 

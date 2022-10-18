@@ -1,0 +1,4 @@
+"0","# Output data to Streamlit
+write.csv(my_sets, ""data/my_sets.csv"", row.names = FALSE, col.names = FALSE)
+"
+"2","Warning: attempt to set 'col.names' ignored"
