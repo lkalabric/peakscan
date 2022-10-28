@@ -1,0 +1,28 @@
+{
+    "id": "50C5D0DB",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1665085733510.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "id": "f7cc2dba5ec24063b7143d2e10dfd8ec",
+        "name": "fsa_stored",
+        "title": "fsa_stored",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 15199867791736881,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1665085733510,
+    "read_only": false,
+    "read_only_alternatives": []
+}

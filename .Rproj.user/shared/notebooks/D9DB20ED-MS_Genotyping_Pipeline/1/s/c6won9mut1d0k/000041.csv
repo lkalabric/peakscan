@@ -1,0 +1,6 @@
+"0","# Create the list ""list.data.covarrubias"" indicating the ladder peaks position, height, weigth, correlation and error identified in each file"
+"0","# ==============================================================="
+"0","ladder.info.attach(stored=fsa_data, ladder=gs600liz, ladd.init.thresh=threshold, prog=FALSE, draw=TRUE)"
+"1","
+Reducing threshold 2x to find ladder 
+"

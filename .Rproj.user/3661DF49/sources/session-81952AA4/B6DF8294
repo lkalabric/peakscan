@@ -1,0 +1,28 @@
+{
+    "id": "B6DF8294",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1665086906254.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "id": "1b83053c38694bcab8f392e3a5084ba0",
+        "name": "fsa_test",
+        "title": "fsa_test",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 3689630311143257654,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1665086906254,
+    "read_only": false,
+    "read_only_alternatives": []
+}

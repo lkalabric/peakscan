@@ -1,0 +1,1 @@
+{"frames":[{"func":"overview2(my.inds = fsa_data, channel = 5, ladder = gs600liz, \n    init.thresh = 7000, xlim = c(160, 190))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in za - allpan : non-numeric argument to binary operator\n"}

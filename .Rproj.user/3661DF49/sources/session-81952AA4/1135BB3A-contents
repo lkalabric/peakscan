@@ -1,0 +1,1317 @@
+---
+title: "Peak Scoring"
+author: "Kathleen Kuesters"
+date: '2022-05-12'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+###############################################################################
+#                                                                             #
+#                Introduction to Fragman peak scoring                         #
+#                                                                             #
+#   file:///Users/Kathleen/Downloads/fragman_intro_scoring.html               #                            
+#                                                                             #
+#    Written in R version 4.1.2 using R Studio RStudio 2022.02.0+443          #
+#                                                                             #                                   
+#                                                                             #
+###############################################################################
+```
+
+```{r}
+# Load required packages
+library("Fragman") #1.0.9 - Peak scoring functions
+library("tidyr") #1.1.4 - Tidyverse best practices
+library("dplyr") #1.0.7 - Tidyverse best practices
+library("magrittr") #2.0.1 - Use of L->R piping of functions
+library("qpdf") #1.1 - PDF manipulations
+
+#Load JB Additional Scripts
+setwd("~/GitHub/P3_Pipeline")
+source("check_fsa_v_batch.R") #Data import scripts
+source("get_fsa_metadata.R") #Data import scripts
+source("storing_inds_rev3.R") #Data import scripts
+source("associate_dye_names.R") #Data import scripts
+source("score_markers_rev3.R") #Peak scoring scripts
+source("Sm_mic_load_v3.R") #Schisto Microsatellite marker sets and expected sizes through Nov 2021
+source("transform_scores_df.R") #Wrapper script for many small transformations and name cleanup (derived from J. Long)
+
+#Change the working directory to where the analysis output should be saved
+setwd("~/GitHub/P3_Pipeline/peak-analysis") #Same location for github
+
+#Designate the location of the fsa files to be analyzed
+fsa_dir <- "~/GitHub/peakscan/fsa" #has to be in its own separate folder
+```
+
+```{r}
+#Import and prepare data for analysis in Fragman package
+```
+
+```{r}
+#Check formats and batch identifiers of all fsa files in target directory
+check_fsa_v_batch(fsa_dir) #Summarize file formats and batch identifiers
+fsa_info <- get_fsa_metadata(fsa_dir) #Retrieve metadata about fsa files
+head(fsa_info)
+write.table(fsa_info, file = paste0("fsa_info.txt"), sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)# Export metadata as tsv to working directory
+```
+
+```{r}
+#Batch import and extract all fsa files into one object
+fsa_data <- storing_inds_rev3(fsa_dir, channels = 5, rawPlot = TRUE, fourier = TRUE, saturated = TRUE, lets.pullup = FALSE) #Import files, show plots
+names(fsa_data) #Check sample names
+head(fsa_data[[1]], 5) #Check data structure with first 5 lines of the first sample 
+```
+
+```{r}
+#Rename channels with associated dye names
+fsa_data <- associate_dye_names(fsa_data, fsa_dir)#Association of dye names using import object and input directory
+head(fsa_data[[1]], 5)
+```
+
+```{r}
+#Match the sizing ladder
+GS600LIZ <- c(20, 40, 60, 80, 100, 114, 120, 140, 160, 180, 200, 214, 220, 240, 250, 260, 280, 300, 314, 320, 340, 360, 380, 400, 414, 420, 440, 460, 480, 500, 514, 520, 540, 560, 580, 600) #Define vector of internal standard/ladder sizes
+ladder.info.attach(stored = fsa_data,ladder = GS600LIZ, ladd.init.thresh = 200, prog = FALSE, draw = TRUE) #Correlate internal ladder with samples
+corro <- unlist(lapply(list.data.covarrubias, function(x){x$corr}))
+bad <- which(corro < .999) #Check for samples with poorly correlated ladders
+bad #View poorly correlated samples (if any)
+```
+
+```{r}
+#Fragman fragment peak scoring
+```
+
+```{r}
+#Examine overview of peaks in data to estimate scoring parameters
+ov_29E6A <- overview2(my.inds = fsa_data, 
+          channel = 1,
+          xlim = c(150, 180),
+          ylim = c(0, 4000),
+          lwd = 2,
+          init.thresh = 100,
+          ladder = GS600LIZ,
+          verbose = FALSE)#Examine channel 1 of ALL samples, focusing on the interval 150-180 bp.
+ov_29E6A #Show peak weights observed in the overview
+mic_29E6A #Show expected fragments sizes (loaded at setup)
+overview2(my.inds = fsa_data, 
+          n.inds = which(names(fsa_data)%in%
+                           c("C:/Users/kalab/OneDrive/Documentos/GitHub/P3_Pipeline/fsa/cwru.a_V_3_Sample_20201013_165003.fsa")),
+          channel = 1,
+          xlim = c(150, 180),
+          ylim = c(0, 2000),
+          lwd = 2,
+          init.thresh = 100,
+          ladder = GS600LIZ,
+          verbose = FALSE)#Examine only the positive control
+
+```
+
+##Check microsatellite fragment panels
+
+```{r}
+#Check microsatellite fragment panels
+mic_29E6A #Examine panels of expected allele sizes for markers
+`mic_SM13-478` #Examine panels of expected allele sizes for markers
+mic_SMU31768 #Examine panels of expected allele sizes for markers
+mic_15J15A #Examine panels of expected allele sizes for markers
+mic_13TAGA
+mic_1F8A
+mic_L46951
+mic_LG1_sc276
+mic_LG3_sc36b
+mic_LG5_sc475
+mic_R95529
+mic_sc23b
+`mic_SM13-410`
+mic_SMD28
+mic_SMDA23
+mic_SMMS13
+mic_SMMS16
+mic_SMMS17
+mic_SMMS18
+mic_SMMS2
+mic_SMMS21
+mic_SMMS3
+```
+
+##mic_29E6A
+
+```{r}
+#Score peaks for bin size and height
+scores_29E6A <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_29E6A", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_29E6A),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_29E6A) #The elements of the list object are scores for each sample
+data.frame(scores_29E6A$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_29E6A_lf <- do.call(rbind.data.frame, scores_29E6A) #Convert list of sample scores to single long form data frame
+
+scores_29E6A_lf$ID <- rownames(scores_29E6A_lf) #Add cleaned sample names
+scores_29E6A_lf$ID <- gsub("_.*", "", scores_29E6A_lf$ID) #Add cleaned sample names
+
+scores_29E6A_lf$filename <- rownames(scores_29E6A_lf) #Add cleaned file names
+scores_29E6A_lf$filename <- gsub("\\.[0-9]*$", "", scores_29E6A_lf$filename) #Add cleaned file names
+
+scores_29E6A_lf <- scores_29E6A_lf%>%distinct #Remove redundancies
+scores_29E6A_tdf <- transform_scores_df(scores_29E6A) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_29E6A_lf, 5) #Print first 5 lines of longform data frame
+head(scores_29E6A_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_29E6A_lf, file = "scores_29E6A_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_29E6A_tdf, file = "scores_29E6A_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+##mic_SMU31768
+
+```{r}
+#Score peaks for bin size and height
+scores_SMU31768 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMU31768", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMU31768),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMU31768) #The elements of the list object are scores for each sample
+data.frame(scores_SMU31768$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMU31768_lf <- do.call(rbind.data.frame, scores_SMU31768) #Convert list of sample scores to single long form data frame
+
+scores_SMU31768_lf$ID <- rownames(scores_SMU31768_lf) #Add cleaned sample names
+scores_SMU31768_lf$ID <- gsub("_.*", "", scores_SMU31768_lf$ID) #Add cleaned sample names
+
+scores_SMU31768_lf$filename <- rownames(scores_SMU31768_lf) #Add cleaned file names
+scores_SMU31768_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMU31768_lf$filename) #Add cleaned file names
+
+scores_SMU31768_lf <- scores_SMU31768_lf%>%distinct #Remove redundancies
+scores_SMU31768_tdf <- transform_scores_df(scores_SMU31768) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMU31768_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMU31768_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMU31768_lf, file = "scores_SMU31768_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMU31768_tdf, file = "scores_SMU31768_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+
+
+##mic_SM13-478
+
+```{r}
+#Examine overview of peaks in data to estimate scoring parameters
+ov_mic_SM13478 <- overview2(my.inds = fsa_data, 
+          channel = 1,
+          xlim = c(220, 260),
+          ylim = c(0, 8000),
+          lwd = 2,
+          init.thresh = 100,
+          ladder = GS600LIZ,
+          verbose = FALSE)#Examine channel 1 of ALL samples, focusing on the interval 150-180 bp.
+ov_mic_SM13478 #Show peak weights observed in the overview
+'mic_SM13-478' #Show expected fragments sizes (loaded at setup)
+overview2(my.inds = fsa_data, 
+          n.inds = which(names(fsa_data)%in%
+                           c("cwru.a_V_3_Sample_20201013_165003.fsa")),
+          channel = 1,
+          xlim = c(220, 260),
+          ylim = c(0, 8000),
+          lwd = 2,
+          init.thresh = 100,
+          ladder = GS600LIZ,
+          verbose = FALSE)#Examine only the positive control
+
+```
+
+```{r}
+#Score peaks for bin size and height
+scores_SM13478 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SM13-478", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(`mic_SM13-478`),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SM13478) #The elements of the list object are scores for each sample
+data.frame(scores_SM13478$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SM13478_lf <- do.call(rbind.data.frame, scores_SM13478) #Convert list of sample scores to single long form data frame
+
+scores_SM13478_lf$ID <- rownames(scores_SM13478_lf) #Add cleaned sample names
+scores_SM13478_lf$ID <- gsub("_.*", "", scores_SM13478_lf$ID) #Add cleaned sample names
+
+scores_SM13478_lf$filename <- rownames(scores_SM13478_lf) #Add cleaned file names
+scores_SM13478_lf$filename <- gsub("\\.[0-9]*$", "", scores_SM13478_lf$filename) #Add cleaned file names
+
+scores_SM13478_lf <- scores_SM13478_lf%>%distinct #Remove redundancies
+scores_SM13478_tdf <- transform_scores_df(scores_SM13478) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SM13478_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SM13478_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SM13478_lf, file = "scores_SM13478_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SM13478_tdf, file = "scores_SM13478_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_15J15A
+
+```{r}
+#Score peaks for bin size and height
+scores_15J15A <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_15J15A", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_15J15A),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_15J15A) #The elements of the list object are scores for each sample
+data.frame(scores_15J15A$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_15J15A_lf <- do.call(rbind.data.frame, scores_15J15A) #Convert list of sample scores to single long form data frame
+
+scores_15J15A_lf$ID <- rownames(scores_15J15A_lf) #Add cleaned sample names
+scores_15J15A_lf$ID <- gsub("_.*", "", scores_15J15A_lf$ID) #Add cleaned sample names
+
+scores_15J15A_lf$filename <- rownames(scores_15J15A_lf) #Add cleaned file names
+scores_15J15A_lf$filename <- gsub("\\.[0-9]*$", "", scores_15J15A_lf$filename) #Add cleaned file names
+
+scores_15J15A_lf <- scores_15J15A_lf%>%distinct #Remove redundancies
+scores_15J15A_tdf <- transform_scores_df(scores_15J15A) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_15J15A_lf, 5) #Print first 5 lines of longform data frame
+head(scores_15J15A_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_15J15A_lf, file = "scores_15J15A_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_15J15A_tdf, file = "scores_15J15A_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+##mic_13TAGA
+
+```{r}
+#Score peaks for bin size and height
+scores_13TAGA <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_13TAGA", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_13TAGA),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_13TAGA) #The elements of the list object are scores for each sample
+data.frame(scores_13TAGA$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_13TAGA_lf <- do.call(rbind.data.frame, scores_13TAGA) #Convert list of sample scores to single long form data frame
+
+scores_13TAGA_lf$ID <- rownames(scores_13TAGA_lf) #Add cleaned sample names
+scores_13TAGA_lf$ID <- gsub("_.*", "", scores_13TAGA_lf$ID) #Add cleaned sample names
+
+scores_13TAGA_lf$filename <- rownames(scores_13TAGA_lf) #Add cleaned file names
+scores_13TAGA_lf$filename <- gsub("\\.[0-9]*$", "", scores_13TAGA_lf$filename) #Add cleaned file names
+
+scores_13TAGA_lf <- scores_13TAGA_lf%>%distinct #Remove redundancies
+scores_13TAGA_tdf <- transform_scores_df(scores_13TAGA) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_13TAGA_lf, 5) #Print first 5 lines of longform data frame
+head(scores_13TAGA_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_13TAGA_lf, file = "scores_13TAGA_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_13TAGA_tdf, file = "scores_13TAGA_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_1F8A
+
+```{r}
+#Score peaks for bin size and height
+scores_1F8A <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_1F8A", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_1F8A),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_1F8A) #The elements of the list object are scores for each sample
+data.frame(scores_1F8A$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_1F8A_lf <- do.call(rbind.data.frame, scores_1F8A) #Convert list of sample scores to single long form data frame
+
+scores_1F8A_lf$ID <- rownames(scores_1F8A_lf) #Add cleaned sample names
+scores_1F8A_lf$ID <- gsub("_.*", "", scores_1F8A_lf$ID) #Add cleaned sample names
+
+scores_1F8A_lf$filename <- rownames(scores_1F8A_lf) #Add cleaned file names
+scores_1F8A_lf$filename <- gsub("\\.[0-9]*$", "", scores_1F8A_lf$filename) #Add cleaned file names
+
+scores_1F8A_lf <- scores_1F8A_lf%>%distinct #Remove redundancies
+scores_1F8A_tdf <- transform_scores_df(scores_1F8A) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_1F8A_lf, 5) #Print first 5 lines of longform data frame
+head(scores_1F8A_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_1F8A_lf, file = "scores_1F8A_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_1F8A_tdf, file = "scores_1F8A_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+##mic_L46951
+
+```{r}
+#Score peaks for bin size and height
+scores_L46951 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_L46951", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_L46951),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_L46951) #The elements of the list object are scores for each sample
+data.frame(scores_L46951$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_L46951_lf <- do.call(rbind.data.frame, scores_L46951) #Convert list of sample scores to single long form data frame
+
+scores_L46951_lf$ID <- rownames(scores_L46951_lf) #Add cleaned sample names
+scores_L46951_lf$ID <- gsub("_.*", "", scores_L46951_lf$ID) #Add cleaned sample names
+
+scores_L46951_lf$filename <- rownames(scores_L46951_lf) #Add cleaned file names
+scores_L46951_lf$filename <- gsub("\\.[0-9]*$", "", scores_L46951_lf$filename) #Add cleaned file names
+
+scores_L46951_lf <- scores_L46951_lf%>%distinct #Remove redundancies
+scores_L46951_tdf <- transform_scores_df(scores_L46951) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_L46951_lf, 5) #Print first 5 lines of longform data frame
+head(scores_L46951_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_L46951_lf, file = "scores_L46951_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_L46951_tdf, file = "scores_L46951_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+##mic_LG1_sc276
+
+```{r}
+#Score peaks for bin size and height
+scores_LG1_sc276 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_LG1_sc276", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_LG1_sc276),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_LG1_sc276) #The elements of the list object are scores for each sample
+data.frame(scores_LG1_sc276$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_LG1_sc276_lf <- do.call(rbind.data.frame, scores_LG1_sc276) #Convert list of sample scores to single long form data frame
+
+scores_LG1_sc276_lf$ID <- rownames(scores_LG1_sc276_lf) #Add cleaned sample names
+scores_LG1_sc276_lf$ID <- gsub("_.*", "", scores_LG1_sc276_lf$ID) #Add cleaned sample names
+
+scores_LG1_sc276_lf$filename <- rownames(scores_LG1_sc276_lf) #Add cleaned file names
+scores_LG1_sc276_lf$filename <- gsub("\\.[0-9]*$", "", scores_LG1_sc276_lf$filename) #Add cleaned file names
+
+scores_LG1_sc276_lf <- scores_LG1_sc276_lf%>%distinct #Remove redundancies
+scores_LG1_sc276_tdf <- transform_scores_df(scores_LG1_sc276) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_LG1_sc276_lf, 5) #Print first 5 lines of longform data frame
+head(scores_LG1_sc276_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_LG1_sc276_lf, file = "scores_LG1_sc276_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_LG1_sc276_tdf, file = "scores_LG1_sc276_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_LG3_sc36b
+
+```{r}
+#Score peaks for bin size and height
+scores_LG3_sc36b <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_LG3_sc36b", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_LG3_sc36b),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_LG3_sc36b) #The elements of the list object are scores for each sample
+data.frame(scores_LG3_sc36b$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_LG3_sc36b_lf <- do.call(rbind.data.frame, scores_LG3_sc36b) #Convert list of sample scores to single long form data frame
+
+scores_LG3_sc36b_lf$ID <- rownames(scores_LG3_sc36b_lf) #Add cleaned sample names
+scores_LG3_sc36b_lf$ID <- gsub("_.*", "", scores_LG3_sc36b_lf$ID) #Add cleaned sample names
+
+scores_LG3_sc36b_lf$filename <- rownames(scores_LG3_sc36b_lf) #Add cleaned file names
+scores_LG3_sc36b_lf$filename <- gsub("\\.[0-9]*$", "", scores_LG3_sc36b_lf$filename) #Add cleaned file names
+
+scores_LG3_sc36b_lf <- scores_LG3_sc36b_lf%>%distinct #Remove redundancies
+scores_LG3_sc36b_tdf <- transform_scores_df(scores_LG3_sc36b) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_LG3_sc36b_lf, 5) #Print first 5 lines of longform data frame
+head(scores_LG3_sc36b_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_LG3_sc36b_lf, file = "scores_LG3_sc36b_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_LG3_sc36b_tdf, file = "scores_LG3_sc36b_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+
+##mic_LG5_sc475
+
+```{r}
+#Score peaks for bin size and height
+scores_LG5_sc475 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_LG5_sc475", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_LG5_sc475),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_LG5_sc475) #The elements of the list object are scores for each sample
+data.frame(scores_LG5_sc475$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_LG5_sc475_lf <- do.call(rbind.data.frame, scores_LG5_sc475) #Convert list of sample scores to single long form data frame
+
+scores_LG5_sc475_lf$ID <- rownames(scores_LG5_sc475_lf) #Add cleaned sample names
+scores_LG5_sc475_lf$ID <- gsub("_.*", "", scores_LG5_sc475_lf$ID) #Add cleaned sample names
+
+scores_LG5_sc475_lf$filename <- rownames(scores_LG5_sc475_lf) #Add cleaned file names
+scores_LG5_sc475_lf$filename <- gsub("\\.[0-9]*$", "", scores_LG5_sc475_lf$filename) #Add cleaned file names
+
+scores_LG5_sc475_lf <- scores_LG5_sc475_lf%>%distinct #Remove redundancies
+scores_LG5_sc475_tdf <- transform_scores_df(scores_LG5_sc475) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_LG5_sc475_lf, 5) #Print first 5 lines of longform data frame
+head(scores_LG5_sc475_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_LG5_sc475_lf, file = "scores_LG5_sc475_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_LG5_sc475_tdf, file = "scores_LG5_sc475_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_R95529
+
+```{r}
+#Score peaks for bin size and height
+scores_R95529 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_R95529", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_R95529),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_R95529) #The elements of the list object are scores for each sample
+data.frame(scores_R95529$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_R95529_lf <- do.call(rbind.data.frame, scores_R95529) #Convert list of sample scores to single long form data frame
+
+scores_R95529_lf$ID <- rownames(scores_R95529_lf) #Add cleaned sample names
+scores_R95529_lf$ID <- gsub("_.*", "", scores_R95529_lf$ID) #Add cleaned sample names
+
+scores_R95529_lf$filename <- rownames(scores_R95529_lf) #Add cleaned file names
+scores_R95529_lf$filename <- gsub("\\.[0-9]*$", "", scores_R95529_lf$filename) #Add cleaned file names
+
+scores_R95529_lf <- scores_R95529_lf%>%distinct #Remove redundancies
+scores_R95529_tdf <- transform_scores_df(scores_R95529) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_R95529_lf, 5) #Print first 5 lines of longform data frame
+head(scores_R95529_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_R95529_lf, file = "scores_R95529_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_R95529_tdf, file = "scores_R95529_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_sc23b
+
+```{r}
+#Score peaks for bin size and height
+scores_sc23b <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_sc23b", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_sc23b),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_sc23b) #The elements of the list object are scores for each sample
+data.frame(scores_sc23b$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_sc23b_lf <- do.call(rbind.data.frame, scores_sc23b) #Convert list of sample scores to single long form data frame
+
+scores_sc23b_lf$ID <- rownames(scores_sc23b_lf) #Add cleaned sample names
+scores_sc23b_lf$ID <- gsub("_.*", "", scores_sc23b_lf$ID) #Add cleaned sample names
+
+scores_sc23b_lf$filename <- rownames(scores_sc23b_lf) #Add cleaned file names
+scores_sc23b_lf$filename <- gsub("\\.[0-9]*$", "", scores_sc23b_lf$filename) #Add cleaned file names
+
+scores_sc23b_lf <- scores_sc23b_lf%>%distinct #Remove redundancies
+scores_sc23b_tdf <- transform_scores_df(scores_sc23b) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_sc23b_lf, 5) #Print first 5 lines of longform data frame
+head(scores_sc23b_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_sc23b_lf, file = "scores_sc23b_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_sc23b_tdf, file = "scores_sc23b_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SM13-410
+
+```{r}
+#Score peaks for bin size and height
+scores_SM13410 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SM13-410", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(`mic_SM13-410`),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SM13410) #The elements of the list object are scores for each sample
+data.frame(scores_SM13410$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SM13410_lf <- do.call(rbind.data.frame, scores_SM13410) #Convert list of sample scores to single long form data frame
+
+scores_SM13410_lf$ID <- rownames(scores_SM13410_lf) #Add cleaned sample names
+scores_SM13410_lf$ID <- gsub("_.*", "", scores_SM13410_lf$ID) #Add cleaned sample names
+
+scores_SM13410_lf$filename <- rownames(scores_SM13410_lf) #Add cleaned file names
+scores_SM13410_lf$filename <- gsub("\\.[0-9]*$", "", scores_SM13410_lf$filename) #Add cleaned file names
+
+scores_SM13410_lf <- scores_SM13410_lf%>%distinct #Remove redundancies
+scores_SM13410_tdf <- transform_scores_df(scores_SM13410) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SM13410_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SM13410_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SM13410_lf, file = "scores_SM13410_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SM13410_tdf, file = "scores_SM13410_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMD28
+
+```{r}
+#Score peaks for bin size and height
+scores_SMD28 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMD28", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMD28),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMD28) #The elements of the list object are scores for each sample
+data.frame(scores_SMD28$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMD28_lf <- do.call(rbind.data.frame, scores_SMD28) #Convert list of sample scores to single long form data frame
+
+scores_SMD28_lf$ID <- rownames(scores_SMD28_lf) #Add cleaned sample names
+scores_SMD28_lf$ID <- gsub("_.*", "", scores_SMD28_lf$ID) #Add cleaned sample names
+
+scores_SMD28_lf$filename <- rownames(scores_SMD28_lf) #Add cleaned file names
+scores_SMD28_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMD28_lf$filename) #Add cleaned file names
+
+scores_SMD28_lf <- scores_SMD28_lf%>%distinct #Remove redundancies
+scores_SMD28_tdf <- transform_scores_df(scores_SMD28) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMD28_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMD28_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMD28_lf, file = "scores_SMD28_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMD28_tdf, file = "scores_SMD28_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMDA23
+
+```{r}
+#Score peaks for bin size and height
+scores_SMDA23 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMDA23", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMDA23),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMDA23) #The elements of the list object are scores for each sample
+data.frame(scores_SMDA23$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMDA23_lf <- do.call(rbind.data.frame, scores_SMDA23) #Convert list of sample scores to single long form data frame
+
+scores_SMDA23_lf$ID <- rownames(scores_SMDA23_lf) #Add cleaned sample names
+scores_SMDA23_lf$ID <- gsub("_.*", "", scores_SMDA23_lf$ID) #Add cleaned sample names
+
+scores_SMDA23_lf$filename <- rownames(scores_SMDA23_lf) #Add cleaned file names
+scores_SMDA23_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMDA23_lf$filename) #Add cleaned file names
+
+scores_SMDA23_lf <- scores_SMDA23_lf%>%distinct #Remove redundancies
+scores_SMDA23_tdf <- transform_scores_df(scores_SMDA23) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMDA23_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMDA23_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMDA23_lf, file = "scores_SMDA23_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMDA23_tdf, file = "scores_SMDA23_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS13
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS13 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS13", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS13),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS13) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS13$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS13_lf <- do.call(rbind.data.frame, scores_SMMS13) #Convert list of sample scores to single long form data frame
+
+scores_SMMS13_lf$ID <- rownames(scores_SMMS13_lf) #Add cleaned sample names
+scores_SMMS13_lf$ID <- gsub("_.*", "", scores_SMMS13_lf$ID) #Add cleaned sample names
+
+scores_SMMS13_lf$filename <- rownames(scores_SMMS13_lf) #Add cleaned file names
+scores_SMMS13_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS13_lf$filename) #Add cleaned file names
+
+scores_SMMS13_lf <- scores_SMMS13_lf%>%distinct #Remove redundancies
+scores_SMMS13_tdf <- transform_scores_df(scores_SMMS13) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS13_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS13_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS13_lf, file = "scores_SMMS13_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS13_tdf, file = "scores_SMMS13_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS16
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS16 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS16", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS16),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS16) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS16$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS16_lf <- do.call(rbind.data.frame, scores_SMMS16) #Convert list of sample scores to single long form data frame
+
+scores_SMMS16_lf$ID <- rownames(scores_SMMS16_lf) #Add cleaned sample names
+scores_SMMS16_lf$ID <- gsub("_.*", "", scores_SMMS16_lf$ID) #Add cleaned sample names
+
+scores_SMMS16_lf$filename <- rownames(scores_SMMS16_lf) #Add cleaned file names
+scores_SMMS16_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS16_lf$filename) #Add cleaned file names
+
+scores_SMMS16_lf <- scores_SMMS16_lf%>%distinct #Remove redundancies
+scores_SMMS16_tdf <- transform_scores_df(scores_SMMS16) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS16_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS16_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS16_lf, file = "scores_SMMS16_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS16_tdf, file = "scores_SMMS16_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS17
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS17 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS17", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS17),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS17) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS17$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS17_lf <- do.call(rbind.data.frame, scores_SMMS17) #Convert list of sample scores to single long form data frame
+
+scores_SMMS17_lf$ID <- rownames(scores_SMMS17_lf) #Add cleaned sample names
+scores_SMMS17_lf$ID <- gsub("_.*", "", scores_SMMS17_lf$ID) #Add cleaned sample names
+
+scores_SMMS17_lf$filename <- rownames(scores_SMMS17_lf) #Add cleaned file names
+scores_SMMS17_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS17_lf$filename) #Add cleaned file names
+
+scores_SMMS17_lf <- scores_SMMS17_lf%>%distinct #Remove redundancies
+scores_SMMS17_tdf <- transform_scores_df(scores_SMMS17) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS17_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS17_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS17_lf, file = "scores_SMMS17_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS17_tdf, file = "scores_SMMS17_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS18
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS18 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS18", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS18),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS18) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS18$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS18_lf <- do.call(rbind.data.frame, scores_SMMS18) #Convert list of sample scores to single long form data frame
+
+scores_SMMS18_lf$ID <- rownames(scores_SMMS18_lf) #Add cleaned sample names
+scores_SMMS18_lf$ID <- gsub("_.*", "", scores_SMMS18_lf$ID) #Add cleaned sample names
+
+scores_SMMS18_lf$filename <- rownames(scores_SMMS18_lf) #Add cleaned file names
+scores_SMMS18_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS18_lf$filename) #Add cleaned file names
+
+scores_SMMS18_lf <- scores_SMMS18_lf%>%distinct #Remove redundancies
+scores_SMMS18_tdf <- transform_scores_df(scores_SMMS18) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS18_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS18_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS18_lf, file = "scores_SMMS18_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS18_tdf, file = "scores_SMMS18_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS2
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS2 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS2", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS2),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS2) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS2$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS2_lf <- do.call(rbind.data.frame, scores_SMMS2) #Convert list of sample scores to single long form data frame
+
+scores_SMMS2_lf$ID <- rownames(scores_SMMS2_lf) #Add cleaned sample names
+scores_SMMS2_lf$ID <- gsub("_.*", "", scores_SMMS2_lf$ID) #Add cleaned sample names
+
+scores_SMMS2_lf$filename <- rownames(scores_SMMS2_lf) #Add cleaned file names
+scores_SMMS2_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS2_lf$filename) #Add cleaned file names
+
+scores_SMMS2_lf <- scores_SMMS2_lf%>%distinct #Remove redundancies
+scores_SMMS2_tdf <- transform_scores_df(scores_SMMS2) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS2_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS2_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS2_lf, file = "scores_SMMS2_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS2_tdf, file = "scores_SMMS2_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS21
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS21 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS21", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS21),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS21) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS21$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS21_lf <- do.call(rbind.data.frame, scores_SMMS21) #Convert list of sample scores to single long form data frame
+
+scores_SMMS21_lf$ID <- rownames(scores_SMMS21_lf) #Add cleaned sample names
+scores_SMMS21_lf$ID <- gsub("_.*", "", scores_SMMS21_lf$ID) #Add cleaned sample names
+
+scores_SMMS21_lf$filename <- rownames(scores_SMMS21_lf) #Add cleaned file names
+scores_SMMS21_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS21_lf$filename) #Add cleaned file names
+
+scores_SMMS21_lf <- scores_SMMS21_lf%>%distinct #Remove redundancies
+scores_SMMS21_tdf <- transform_scores_df(scores_SMMS21) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS21_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS21_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS21_lf, file = "scores_SMMS21_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS21_tdf, file = "scores_SMMS21_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```
+##mic_SMMS3
+
+```{r}
+#Score peaks for bin size and height
+scores_SMMS3 <- score_markers_rev3(my.inds = fsa_data, 
+                             channel = 1, 
+                             # n.inds = "cwru.a_V_3_Sample_20201013_165003.fsa",
+                             channel.ladder = 5,
+                             panel = "mic_SMMS3", 
+                             ladder = GS600LIZ, 
+                             init.thresh = 100,
+                             ploidy = length(mic_SMMS3),
+                             windowL = 0.25,
+                             windowR= 2,
+                             left.cond = c(0, 2.5),
+                             right.cond = 0,
+                             pref = 1, 
+                             plotting = TRUE,
+                             plotdir = "plots_scoring_intro") # Score markers for all, can also specify subset (n.inds); In pooled samples, the ploidy parameter = the number of expected fragment sizes
+#This will output a pdf file in the place that was designated earlier under "plots_scoring_intro"
+names(scores_SMMS3) #The elements of the list object are scores for each sample
+data.frame(scores_SMMS3$cwru.a_V_3_Sample_20201013_165003.fsa) #Access a single element to see that sample's peak index positions, heights & weights
+```
+
+
+```{r}
+#Data manipulation per JB
+
+#Transform Fragman list output to flatfiles
+scores_SMMS3_lf <- do.call(rbind.data.frame, scores_SMMS3) #Convert list of sample scores to single long form data frame
+
+scores_SMMS3_lf$ID <- rownames(scores_SMMS3_lf) #Add cleaned sample names
+scores_SMMS3_lf$ID <- gsub("_.*", "", scores_SMMS3_lf$ID) #Add cleaned sample names
+
+scores_SMMS3_lf$filename <- rownames(scores_SMMS3_lf) #Add cleaned file names
+scores_SMMS3_lf$filename <- gsub("\\.[0-9]*$", "", scores_SMMS3_lf$filename) #Add cleaned file names
+
+scores_SMMS3_lf <- scores_SMMS3_lf%>%distinct #Remove redundancies
+scores_SMMS3_tdf <- transform_scores_df(scores_SMMS3) #Reshape and transpose output as per J. Long (L. Barbosa) for downstream analysis 
+
+head(scores_SMMS3_lf, 5) #Print first 5 lines of longform data frame
+head(scores_SMMS3_tdf, 5) #Print first 5 lines of transformed data frame
+```
+
+
+```{r}
+#Export score flatfiles
+write.table(scores_SMMS3_lf, file = "scores_SMMS3_lfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export long form data frame as tsv to working directory
+write.table(scores_SMMS3_tdf, file = "scores_SMMS3_tdfex.txt", col.names = NA,
+            quote = FALSE, row.names = TRUE, sep = "\t") #Export transposed data frame as tsv to working directory
+```

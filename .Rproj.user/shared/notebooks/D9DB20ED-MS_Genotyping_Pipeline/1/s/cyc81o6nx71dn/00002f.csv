@@ -1,0 +1,14 @@
+"1","
+Please specify if you prefer manual or automatic scoring. 
+Type the character 'm' or 'a' (autom is preferred):
+"
+"0","a"
+"1","Please provide the threshold value for the ladder in RFUs (number):"
+"0","100"
+"1","Should we reduce the search in the x-axis to certain peaks?.If none type the 'Esc' key
+otherwise click over the plot where where the start is (one click) and 
+the end (another click), and finally type the 'Esc' key"
+"1","
+Sample adjusted."
+"1","
+STARTING SAMPLE 5 "

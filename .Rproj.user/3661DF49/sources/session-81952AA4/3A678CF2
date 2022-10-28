@@ -1,0 +1,28 @@
+{
+    "id": "3A678CF2",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1665085451328.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "id": "4ac886a2c4b14d7e9bb3fb85f1ac835e",
+        "name": "fsa_alldata",
+        "title": "fsa_alldata",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 3689630311143257654,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1665085451328,
+    "read_only": false,
+    "read_only_alternatives": []
+}

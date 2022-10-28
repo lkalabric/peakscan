@@ -1,0 +1,4 @@
+"0","fsa_data <- storing.inds(folder=""~/GitHub/peakscan/fsa"")
+"
+"2","Error in setwd(paste(folder)) : cannot change working directory
+"
